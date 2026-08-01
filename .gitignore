@@ -23,3 +23,7 @@ __pycache__/
 fuzz/oracle-findings.txt
 fuzz/invariant-findings.txt
 fuzz/invariant2-findings.txt
+
+# Local agent/working instructions -- kept on disk, not published.
+CLAUDE.md
+PRE_SUBMISSION_AUDIT.md
