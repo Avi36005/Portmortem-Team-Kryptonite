@@ -1,0 +1,25 @@
+# Build output
+/target
+**/target
+
+# Virtualenvs (two: one for the Python original, one for the Rust port)
+.venv/
+.venv-baseline/
+
+# Python bytecode and the compiled extension module
+__pycache__/
+*.py[cod]
+*.so
+
+# Test/tooling caches
+.pytest_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store
+
+# Harness OUTPUT (regenerate with `make fuzz` / `make hunt`).
+# fuzz/log.txt IS committed -- it is the required evidence artifact.
+fuzz/oracle-findings.txt
+fuzz/invariant-findings.txt
+fuzz/invariant2-findings.txt
