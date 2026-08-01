@@ -1,0 +1,19 @@
+[package]
+# Named `croniter` so the built extension module is importable as `croniter`,
+# which is exactly what the unmodified original test suite imports.
+name = "croniter"
+description = "PyO3 bridge exposing croniter-core to the original Python test suite. NOT part of the shipped artifact."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "croniter"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.29.0", features = ["extension-module"] }
+croniter-core = { path = "../core" }
+chrono = "0.4.45"
+chrono-tz = "0.10.4"

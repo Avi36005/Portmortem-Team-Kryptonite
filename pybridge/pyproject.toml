@@ -1,0 +1,18 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "croniter"
+version = "0.1.0"
+description = "PyO3 bridge exposing the Rust croniter port to the original Python test suite (test-only, not shipped)"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[tool.maturin]
+# The compiled Rust extension is installed as `croniter.croniter`, mirroring the
+# original package layout where the implementation lives in `croniter/croniter.py`.
+# `croniter/__init__.py` is a pure re-export shim, exactly as upstream's is.
+module-name = "croniter.croniter"
+python-source = "python"
+features = ["pyo3/extension-module"]
