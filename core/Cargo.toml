@@ -1,0 +1,24 @@
+[package]
+# Directory is `core/` per the planned layout, but the *package* is
+# `croniter-core`: cargo warns that a package literally named `core` collides
+# with Rust's built-in `core` crate. See DECISIONS.md.
+name = "croniter-core"
+description = "Rust port of croniter: cron expression parsing and next/prev fire-time calculation. No Python runtime."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "croniter_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "croniter"
+path = "src/bin/croniter.rs"
+
+[dependencies]
+chrono = "0.4.45"
+chrono-tz = "0.10.4"
+regex = "1.13.1"
+thiserror = "2.0.19"
