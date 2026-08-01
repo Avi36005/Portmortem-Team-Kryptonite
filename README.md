@@ -543,11 +543,20 @@ dominated by the cheapest path.
 
 ## ✅ Eligibility
 
-**No direct Rust port of croniter exists.** The [`cron`](https://crates.io/crates/cron)
-crate (zslayton) is an independent implementation, not a port, and lacks `L`,
-`W`, `#`, hash (`H`) expressions, `croniter_range`, and the second/year field
-forms — all of which this port implements and all of which the original test
-suite exercises.
+**No Rust port of croniter exists.** There is no crate named `croniter`
+(`docs.rs/croniter` is a 404) and nothing in the ecosystem is described as a port
+of it. The two nearest crates are independent implementations of cron *syntax*,
+not ports of *this library*:
+
+| Crate | What it is | Missing vs croniter |
+|---|---|---|
+| [`cron`](https://crates.io/crates/cron) (zslayton) | Independent cron parser. Verified against [`src/parsing.rs`](https://github.com/zslayton/cron/blob/master/src/parsing.rs): the parser accepts only `All`, `Point`, `Range`, `NamedPoint`, `NamedRange`, `Period` and `?` | `L`, `W`, `#`, hash (`H`), `croniter_range` |
+| [`croner`](https://crates.io/crates/croner) ([Hexagon](https://github.com/Hexagon/croner-rust)) | Rust flavour of the **JavaScript** croner parser — not related to Python croniter. Does support `L`, `W`, `#` | hash (`H`) expressions, `croniter_range`, croniter's `day_or` / `implement_cron_bug` semantics |
+
+Every one of those gaps is exercised by the original test suite and implemented
+here. For accuracy: `cron` **does** support second and year fields (it uses a
+7-field `sec min hour dom month dow year` form), so that is not a point of
+difference and is not claimed as one.
 
 **Provenance is pinned.** Source commit `3c6ce9bcc5cc7f89116a58f43aaea67e760bff50`
 is recorded in `.kickoff-commit` and `.port-mortem.toml`; every original test file
