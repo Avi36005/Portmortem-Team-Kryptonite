@@ -1,0 +1,91 @@
+{
+  "hardware": {
+    "machine": "arm64",
+    "processor": "Apple M4",
+    "system": "Darwin 24.6.0",
+    "os_version": "15.7.7",
+    "python": "3.13.12"
+  },
+  "workload": {
+    "description": "6 cron expressions (plain step, weekday range, last-day-of-month, nth-weekday, nearest-weekday, multi-field) iterated 1666 times each via get_next",
+    "iterations_total": 9996
+  },
+  "benchmarks": [
+    {
+      "name": "python_original_next10k",
+      "command": "/Users/avinashgehi3/projects/Portmortem-Team-Kryptonite/.venv-baseline/bin/python bench/next10k.py 10000",
+      "runs": 25,
+      "warmup": 3,
+      "mean_s": 0.2639645499608014,
+      "stddev_s": 0.005257563229291841,
+      "min_s": 0.2566444579861127,
+      "p50_s": 0.26380445901304483,
+      "p95_s": 0.2697614160133526,
+      "p99_s": 0.2812800829997286,
+      "max_s": 0.2812800829997286,
+      "peak_rss_bytes": 15319040,
+      "stdout": "iterations=9996 checksum=26611225207500",
+      "iterations": 9996,
+      "throughput_per_s": 37868.72139264307
+    },
+    {
+      "name": "rust_port_next10k",
+      "command": "/Users/avinashgehi3/projects/Portmortem-Team-Kryptonite/target/release/croniter bench -n 10000",
+      "runs": 25,
+      "warmup": 3,
+      "mean_s": 0.010422431558836251,
+      "stddev_s": 0.00018581263976840597,
+      "min_s": 0.010133499978110194,
+      "p50_s": 0.010436665994348004,
+      "p95_s": 0.010748917004093528,
+      "p99_s": 0.010789791005663574,
+      "max_s": 0.010789791005663574,
+      "peak_rss_bytes": 4734976,
+      "stdout": "iterations=9996 checksum=26611225207500",
+      "iterations": 9996,
+      "throughput_per_s": 959085.2138074519
+    },
+    {
+      "name": "python_original_startup",
+      "command": "/Users/avinashgehi3/projects/Portmortem-Team-Kryptonite/.venv-baseline/bin/python -c import croniter",
+      "runs": 25,
+      "warmup": 3,
+      "mean_s": 0.030093650076305493,
+      "stddev_s": 0.0014303204607999005,
+      "min_s": 0.028330834000371397,
+      "p50_s": 0.029814125009579584,
+      "p95_s": 0.03237704199273139,
+      "p99_s": 0.03531649999786168,
+      "max_s": 0.03531649999786168,
+      "peak_rss_bytes": 15024128,
+      "stdout": ""
+    },
+    {
+      "name": "rust_port_startup",
+      "command": "/Users/avinashgehi3/projects/Portmortem-Team-Kryptonite/target/release/croniter --version",
+      "runs": 25,
+      "warmup": 3,
+      "mean_s": 0.0021563517197500915,
+      "stddev_s": 6.282444653912257e-05,
+      "min_s": 0.0020377080072648823,
+      "p50_s": 0.002138415991794318,
+      "p95_s": 0.0022770419891458005,
+      "p99_s": 0.002329124981770292,
+      "max_s": 0.002329124981770292,
+      "peak_rss_bytes": 2834432,
+      "stdout": "croniter 0.1.0"
+    }
+  ],
+  "equivalence": {
+    "python_checksum": "26611225207500",
+    "rust_checksum": "26611225207500",
+    "iterations": 9996,
+    "match": true
+  },
+  "comparison": {
+    "workload_speedup_mean": 25.32658031580062,
+    "workload_speedup_p99": 26.069094651794867,
+    "startup_speedup_mean": 13.95581704073451,
+    "rss_ratio": 3.235294117647059
+  }
+}
