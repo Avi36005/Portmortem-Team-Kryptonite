@@ -1,0 +1,30 @@
+'0 12 L * *'               OK=1080
+'0 12 L-1 * *'             EXCEPTION=1080
+'0 0 LW * *'               EXCEPTION=1080
+'0 9 15W * *'              OK=1080
+'0 9 1W * *'               OK=1080
+'0 9 31W * *'              OK=1080
+'0 9 * * 5#3'              OK=1080
+'0 9 * * 5#5'              OK=1080
+'0 9 * * 1#1'              OK=1080
+'0 9 15 * 5'               OK=1080
+'0 9 29 2 *'               OK=1080
+'0 9 29 2 1'               OK=1080
+'*/7 * * * *'              OK=1080
+'0 */13 * * *'             OK=1080
+'*/61 * * * *'             OK=1080
+'0 0 * * 7'                OK=1080
+'0 0 * * 0'                OK=1080
+'0 0 * * 1-5,0'            OK=1080
+
+========================================================================
+pairs checked          : 19440
+  exhaustive intervals : 5325
+  sampled intervals    : 11955 (250 random minutes each)
+  rejected by croniter : 2160 (unsupported syntax)
+
+CONTRADICTIONS FOUND   : 0
+  skipped_match        = 0
+  bad_next             = 0
+  bad_prev_roundtrip   = 0
+========================================================================
