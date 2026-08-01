@@ -1,67 +1,51 @@
-<div align="center">
+# croniter → Rust
 
-# ⏱️ croniter → Rust
+A complete, behaviour-preserving port of [croniter](https://github.com/pallets-eco/croniter) from Python to Rust.
 
-**A complete, behaviour-preserving port of [croniter](https://github.com/pallets-eco/croniter) from Python to Rust.**
-
-[![Tests](https://img.shields.io/badge/original_test_suite-228%2F228_passing-2ea44f?style=for-the-badge)](#-results)
-[![Unsafe](https://img.shields.io/badge/unsafe_in_core-0-2ea44f?style=for-the-badge)](#-verify-our-claims-yourself)
-[![Fuzz](https://img.shields.io/badge/differential_fuzz-160%2C500_inputs_·_0_divergences-2ea44f?style=for-the-badge)](#-differential-fuzzing)
-[![Bugs](https://img.shields.io/badge/upstream_bugs_found-2-orange?style=for-the-badge)](#-upstream-bugs-found)
-
+[![Tests](https://img.shields.io/badge/original_test_suite-228%2F228_passing-2ea44f?style=flat-square)](#results)
+[![Unsafe](https://img.shields.io/badge/unsafe_in_core-0-2ea44f?style=flat-square)](#verification)
+[![Fuzz](https://img.shields.io/badge/differential_fuzz-160%2C500_inputs_·_0_divergences-2ea44f?style=flat-square)](#differential-fuzzing)
+[![Bugs](https://img.shields.io/badge/upstream_bugs_found-2-orange?style=flat-square)](#upstream-bugs)
 [![Rust](https://img.shields.io/badge/Rust-1.97-000000?style=flat-square&logo=rust)](https://www.rust-lang.org/)
-[![Python](https://img.shields.io/badge/CPython-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![PyO3](https://img.shields.io/badge/PyO3-0.29-cc7722?style=flat-square)](https://pyo3.rs/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-**Team Kryptonite** · Port Mortem 2026 · Track D — Python → Rust
-
-</div>
+Team Kryptonite · Port Mortem 2026 · Track D — Python → Rust
 
 ---
 
-## 📋 Table of contents
+## Contents
 
-| | |
-|---|---|
-| [What we built](#-what-we-built) | the deliverable, in one paragraph |
-| [Results](#-results) | the honest numbers |
-| [Scope](#-scope-whats-in-whats-out) | what is ported and what is not |
-| [Quick start](#-quick-start) | build and run in one command |
-| [Verify our claims](#-verify-our-claims-yourself) | don't take our word for any of it |
-| [Why the architecture looks like this](#-why-the-architecture-looks-like-this) | the two-crate split, the one seam |
-| [How we did it](#-how-we-did-it) | phase by phase, with the number at each step |
-| [Differential fuzzing](#-differential-fuzzing) | 160,500 inputs, 0 divergences |
-| [Upstream bugs found](#-upstream-bugs-found) | two real defects in croniter |
-| [Performance](#-performance) | 25x, with the confounders stated |
-| [Repository layout](#-repository-layout) | where everything lives |
-| [Eligibility](#-eligibility) | why this is a valid entry |
+- [Overview](#overview)
+- [Results](#results)
+- [Scope](#scope)
+- [Build and run](#build-and-run)
+- [Verification](#verification)
+- [Architecture](#architecture)
+- [Implementation](#implementation)
+- [Differential fuzzing](#differential-fuzzing)
+- [Upstream bugs](#upstream-bugs)
+- [Performance](#performance)
+- [Repository layout](#repository-layout)
+- [Eligibility](#eligibility)
 
 ---
 
-## 🎯 What we built
+## Overview
 
-croniter parses cron expressions (`0 9 * * 1-5` = "9am on weekdays") and computes
-next/previous fire times. This is a **complete port to Rust** — every feature,
-including the awkward ones: `L` (last day of month), `W` (nearest weekday), `#`
-(nth weekday), hash/`H` expressions, `?`, second and year fields, `croniter_range`,
-and full DST transition handling.
+croniter parses cron expressions (`0 9 * * 1-5` = 09:00 on weekdays) and computes
+next and previous fire times. This is a complete port to Rust, including `L`
+(last day of month), `W` (nearest weekday), `#` (nth weekday), hash (`H`)
+expressions, `?`, second and year fields, `croniter_range`, and DST handling.
 
-The deliverable is a **standalone native Rust package** with **zero Python
-dependency**. It builds a binary that links no interpreter and spawns no
-subprocess. A separate, test-only PyO3 bridge lets the *unmodified original
-Python test suite* run against the Rust code — that bridge is glue, not part of
-what ships.
+The deliverable is a standalone native Rust package with no Python dependency.
+It builds a binary that links no interpreter and spawns no subprocess. A
+separate, test-only PyO3 bridge runs the unmodified original Python test suite
+against the Rust code; that bridge is not part of the shipped artifact.
 
 ---
 
-## 📊 Results
-
-<div align="center">
-
-### 228 / 228 — the complete original test suite, unmodified
-
-</div>
+## Results
 
 ```
 Original baseline:  228/228 passing in 1.54s   (untouched Python, commit 3c6ce9bc)
@@ -77,61 +61,56 @@ Benchmark:          25.3x faster (mean), 26.1x at p99, 3.2x smaller peak RSS
 Equivalence:        both benchmarks produce an identical checksum over 9,996 fire times
 ```
 
-### Per-file breakdown
-
 | Test file | Tests | Passing | |
 |---|---:|---:|:--|
-| `test_croniter.py` | 148 | **148** | ✅ |
-| `test_croniter_hash.py` | 54 | **54** | ✅ |
-| `test_croniter_range.py` | 16 | **16** | ✅ |
-| `test_croniter_dst_repetition.py` | 4 | **4** | ✅ |
-| `test_croniter_random.py` | 4 | **4** | ✅ |
-| `test_croniter_speed.py` | 2 | **2** | ✅ |
-| **Total** | **228** | **228** | 🎉 |
+| `test_croniter.py` | 148 | 148 | ✅ |
+| `test_croniter_hash.py` | 54 | 54 | ✅ |
+| `test_croniter_range.py` | 16 | 16 | ✅ |
+| `test_croniter_dst_repetition.py` | 4 | 4 | ✅ |
+| `test_croniter_random.py` | 4 | 4 | ✅ |
+| `test_croniter_speed.py` | 2 | 2 | ✅ |
+| **Total** | **228** | **228** | |
 
-> **On honesty.** Every number here was measured on this machine and watched. The
-> project brief quotes a 4.33s baseline; we measure **1.54s** — different hardware.
-> We report what we observed. Where we could not verify something (the Docker
-> path), we say so explicitly rather than claim it.
+Every number here was measured on this machine. The project brief quotes a 4.33s
+baseline; we measure 1.54s on different hardware, and report what we observed.
+Where a claim could not be verified — the Docker path — it is marked as such.
 
 ---
 
-## 🎯 Scope: what's in, what's out
+## Scope
 
-Per the organizers' ruling that scope must be stated explicitly:
-
-### ✅ In scope — fully ported, all covered by the original tests
+### In scope — ported, covered by the original tests
 
 | Area | Status |
 |---|---|
-| Field expansion: ranges, steps, lists, wrap-around (`Sat-Sun`, `Apr-Jan`) | ✅ complete |
-| Alphabetic names (`mon`, `jan`), `?`, `@daily`/`@weekly`/`@yearly`/… aliases | ✅ complete |
-| `L` (last day), `W` (nearest weekday), `#` / `lN` (nth weekday) | ✅ complete |
-| 5-, 6- (second) and 7-field (year) expressions, `second_at_beginning` | ✅ complete |
-| `get_next`, `get_prev`, `get_current`, `set_current`, `all_next`, `all_prev`, `iter` | ✅ complete |
-| `match`, `match_range`, `is_valid`, `expand` | ✅ complete |
-| `croniter_range`, incl. the `_croniter` subclass-injection parameter | ✅ complete |
-| `HashExpander` — `H`/`R`, with `binascii.crc32` semantics | ✅ complete |
-| Full exception hierarchy, mapped to the exact Python types | ✅ complete |
-| DST: ambiguous and non-existent local times, in the standalone crate | ✅ complete |
-| `day_or`, `implement_cron_bug`, `expand_from_start_time`, `max_years_between_matches` | ✅ complete |
+| Field expansion: ranges, steps, lists, wrap-around (`Sat-Sun`, `Apr-Jan`) | Complete |
+| Alphabetic names (`mon`, `jan`), `?`, `@daily`/`@weekly`/`@yearly` aliases | Complete |
+| `L` (last day), `W` (nearest weekday), `#` / `lN` (nth weekday) | Complete |
+| 5-, 6- (second) and 7-field (year) expressions, `second_at_beginning` | Complete |
+| `get_next`, `get_prev`, `get_current`, `set_current`, `all_next`, `all_prev`, `iter` | Complete |
+| `match`, `match_range`, `is_valid`, `expand` | Complete |
+| `croniter_range`, including the `_croniter` subclass-injection parameter | Complete |
+| `HashExpander` — `H`/`R`, with `binascii.crc32` semantics | Complete |
+| Full exception hierarchy, mapped to the exact Python types | Complete |
+| DST: ambiguous and non-existent local times, in the standalone crate | Complete |
+| `day_or`, `implement_cron_bug`, `expand_from_start_time`, `max_years_between_matches` | Complete |
 
-### ⚪ Out of scope — and why
+### Out of scope
 
 | Not ported | Reason |
 |---|---|
-| Upstream CI config, `pyproject.toml`, packaging metadata | Not core language behaviour; per organizer ruling only the library itself needs porting |
+| Upstream CI config, `pyproject.toml`, packaging metadata | Not core library behaviour; per organizer ruling only the library itself needs porting |
 | `OVERFLOW32B_MODE` 32-bit degraded path | A CPython 32-bit workaround ([cpython#101069](https://github.com/python/cpython/issues/101069)); Rust has no equivalent limit. Exposed as a flag so the tests that toggle it pass |
 | Deterministic reproduction of `R` (random) hash expressions | Impossible by construction — seeded from Python's global RNG. Range and validity are matched; the exact value cannot be. See [DECISIONS #7](DECISIONS.md) |
 
-**No test is skipped, xfailed, loosened, or worked around.** All 228 pass on the
+No test is skipped, xfailed, loosened, or worked around. All 228 pass on the
 byte-for-byte original files.
 
 ---
 
-## 🚀 Quick start
+## Build and run
 
-### Build the shipped artifact — one command
+### Build the shipped artifact
 
 ```bash
 cargo build --release -p croniter-core     # -> target/release/croniter
@@ -153,7 +132,7 @@ $ croniter next '0 9 * * 5#3' -n 2 --start 2025-06-01T00:00:00  # third Friday
 2025-06-20T09:00:00
 2025-07-18T09:00:00
 
-# Real IANA timezones with full DST resolution — no Python involved
+# IANA timezones with full DST resolution — no Python involved
 $ croniter next '*/30 * * * *' --tz Europe/Athens --start 2013-10-27T02:00:00 -n 4
 2013-10-27T02:30:00
 2013-10-27T03:00:00     # +03:00
@@ -161,20 +140,20 @@ $ croniter next '*/30 * * * *' --tz Europe/Athens --start 2013-10-27T02:00:00 -n
 2013-10-27T03:00:00     # +02:00 — the repeated hour, resolved correctly
 ```
 
-Commands: `next` · `prev` · `range` · `match` · `validate` · `bench`. Run
+Commands: `next`, `prev`, `range`, `match`, `validate`, `bench`. See
 `croniter --help`.
 
-### Run the original Python test suite against the Rust port
+### Run the original Python test suite against the port
 
 ```bash
 make setup     # creates both virtualenvs (first run only, ~1 min)
 make test      # builds the PyO3 bridge, runs tests/original/
 ```
 
-> `make setup` builds **two** virtualenvs, and it must: `.venv-baseline/` holds
-> the original Python croniter (the reference side), `.venv/` holds the Rust port
-> installed under the same name. Both install a package called `croniter`, so
-> they cannot share an environment.
+`make setup` builds two virtualenvs by necessity: `.venv-baseline/` holds the
+original Python croniter (the reference side), `.venv/` holds the Rust port
+installed under the same name. Both install a package called `croniter`, so they
+cannot share an environment.
 
 ### Docker
 
@@ -183,16 +162,15 @@ docker build -t croniter-rs .
 docker run --rm croniter-rs next '0 9 * * 1-5' -n 5
 ```
 
-The runtime stage is `debian:bookworm-slim` with the binary copied in and **no
-Python installed** — the sharpest demonstration that the artifact carries no
-source-language runtime.
+The runtime stage is `debian:bookworm-slim` with the binary copied in and no
+Python installed, demonstrating that the artifact carries no source-language
+runtime.
 
-> ⚠️ **Not verified by us.** The Docker daemon was unavailable on our build
-> machine, so this image was never actually built. The `cargo build` path above
-> *was* run and is where every number in this README comes from. We don't claim
-> results we didn't observe.
+**Not verified by us.** The Docker daemon was unavailable on our build machine,
+so this image was never actually built. The `cargo build` path above was run and
+is the source of every number in this README.
 
-### All available commands
+### Make targets
 
 ```
 make build    Build the shipped artifact (target/release/croniter)
@@ -209,71 +187,76 @@ make all      verify + build + unit + test
 
 ---
 
-## 🔍 Verify our claims yourself
+## Verification
 
 ```bash
 make verify
 ```
 
-Checks three things you should not have to take on trust:
+Checks three claims that should not be taken on trust.
 
 **1. The tests are the originals, untouched.**
+
 ```bash
 sha256sum -c .test-hashes.sha256      # fingerprints taken at kickoff
 git log --oneline -- tests/original/  # exactly one commit: the vendoring
 ```
+
 The hashes were recorded before a line of Rust existed. `tests/original/` is
-byte-for-byte upstream — 3,708 SLOC across 8 files.
+byte-for-byte upstream: 3,708 SLOC across 8 files.
 
 **2. Zero `unsafe` in the shipped crate.**
+
 ```bash
 grep -rn "unsafe" core/src/ | grep -v "forbid(unsafe_code)" | wc -l   # 0
 head -1 core/src/lib.rs                                               # #![forbid(unsafe_code)]
 ```
-Belt and braces — the attribute already makes `unsafe` a compile error.
+
+The attribute makes `unsafe` a compile error; the grep confirms it independently.
 
 **3. No Python in the shipped crate.**
+
 ```bash
 cargo tree -p croniter-core --edges normal | grep -ci pyo3            # 0
 ```
-`croniter-core` depends on `chrono`, `chrono-tz`, `regex`, `thiserror`. Nothing
-else. It cannot link Python even by accident.
+
+`croniter-core` depends on `chrono`, `chrono-tz`, `regex` and `thiserror`, and
+nothing else.
 
 ---
 
-## 🏛 Why the architecture looks like this
+## Architecture
 
-### Two crates, and why that isn't a loophole
+### Two crates
 
 ```
-core/       ← THE PORT. Ships. #![forbid(unsafe_code)]. No Python, at all.
-pybridge/   ← TEST-ONLY glue. PyO3. Not part of the artifact.
+core/       The port. Ships. #![forbid(unsafe_code)]. No Python.
+pybridge/   Test-only glue. PyO3. Not part of the artifact.
 ```
 
-The organizers ruled that a test-only FFI adapter is fine — *"keep the actual
-porting logic in your Rust code, the FFI layer should only bridge the tests, not
-do the work."* That is exactly this split, and it is **measurable**:
+The organizers ruled that a test-only FFI adapter is acceptable — *"keep the
+actual porting logic in your Rust code, the FFI layer should only bridge the
+tests, not do the work."* The split is measurable:
 
 | | lines | contains |
 |---|---:|---|
 | `core/` | ~3,200 | all parsing, expansion, matching, date arithmetic, DST |
 | `pybridge/` | ~1,250 | argument marshalling, type conversion, error re-raising |
 
-`pybridge` contains **zero** occurrences of `calc_next`, `proc_*`,
-`nearest_diff`, `value_alias`, `crc32` or `step_search` — the search engine and
-parser exist only in `core`. The only Python files shipped are a 48-line
-re-export shim (a transcription of upstream's own `__init__.py`, which is itself
-pure re-export) and an 11-line `unittest.TestCase` subclass copied verbatim from
-the original.
+`pybridge` contains zero occurrences of `calc_next`, `proc_*`, `nearest_diff`,
+`value_alias`, `crc32` or `step_search`; the search engine and parser exist only
+in `core`. The only Python shipped is a 48-line re-export shim (a transcription
+of upstream's own `__init__.py`, itself pure re-export) and an 11-line
+`unittest.TestCase` subclass copied verbatim from the original.
 
 Because the two are separate build targets, "no source-language runtime" is
-**checkable** rather than merely asserted.
+checkable rather than asserted.
 
-### The one interesting seam
+### The timezone seam
 
-Timezone data is consulted in exactly **one** place: the `WallClock` trait. The
-search engine never sees a timezone — it works on wall-clock time, exactly as
-croniter's `_calc` does on `now.replace(tzinfo=None)`.
+Timezone data is consulted in exactly one place: the `WallClock` trait. The
+search engine never sees a timezone — it works on wall-clock time, as croniter's
+`_calc` does on `now.replace(tzinfo=None)`.
 
 ```
 ┌────────────────────────────────────────────┐
@@ -287,72 +270,71 @@ croniter's `_calc` does on `now.replace(tzinfo=None)`.
    (core)         (core)       (pybridge only)
 ```
 
-- **`FixedClock`** and **`TzClock`** live in `core`, so the standalone binary
-  handles real IANA zones and DST with no Python.
-- **`PyTzClock`** lives in `pybridge` and asks *the caller's own `tzinfo`
-  object*. This matters: `zoneinfo`, `pytz` and `dateutil` genuinely disagree on
-  ambiguous local times, and the test suite has separate tests pinning each.
-  Shipping a fourth opinion would guarantee disagreement with at least one.
+- `FixedClock` and `TzClock` live in `core`, so the standalone binary handles
+  IANA zones and DST with no Python.
+- `PyTzClock` lives in `pybridge` and queries the caller's own `tzinfo` object.
+  `zoneinfo`, `pytz` and `dateutil` genuinely disagree on ambiguous local times,
+  and the test suite has separate tests pinning each. Shipping a fourth opinion
+  would guarantee disagreement with at least one.
 
 See [DECISIONS.md](DECISIONS.md) #11 and #19.
 
 ---
 
-## 🛠 How we did it
+## Implementation
 
 Ported module by module, running the full suite after each phase and recording
-the real number. Never "should pass now" — always a measured count.
+the measured count.
 
 | Phase | What landed | Suite |
 |---|---|---:|
-| **0** — Bootstrap | Vendored + fingerprinted tests, verified the baseline, built a deliberately-wrong stub bridge to prove the rig | 6/228 |
-| **1** — Expansion | `_expand`, `expand`, `is_valid`, `value_alias`, `HashExpander`, the 6-type exception hierarchy | 38/228 |
-| **2** — Search engine | `_calc_next`/`_calc`, the `proc_*` pipeline, DOM/DOW union, `#` and `W` handling, `relativedelta` semantics | 200/228 |
-| **3** — Range | `croniter_range` with shared bound arithmetic | 215/228 |
-| **4** — Timezones | `_add_tzinfo`, fold resolution, the `WallClock` seam | **228/228** |
-| **5** — Hardening | Timezone-aware differential fuzzing, `TzClock` for the standalone crate, CLI integration tests, upstream bug hunt | **228/228** |
+| 0 — Bootstrap | Vendored and fingerprinted tests, verified the baseline, built a deliberately-wrong stub bridge to prove the rig | 6/228 |
+| 1 — Expansion | `_expand`, `expand`, `is_valid`, `value_alias`, `HashExpander`, the 6-type exception hierarchy | 38/228 |
+| 2 — Search engine | `_calc_next`/`_calc`, the `proc_*` pipeline, DOM/DOW union, `#` and `W` handling, `relativedelta` semantics | 200/228 |
+| 3 — Range | `croniter_range` with shared bound arithmetic | 215/228 |
+| 4 — Timezones | `_add_tzinfo`, fold resolution, the `WallClock` seam | 228/228 |
+| 5 — Hardening | Timezone-aware differential fuzzing, `TzClock` for the standalone crate, CLI integration tests, upstream bug hunt | 228/228 |
 
-### The three bugs that cost us the most (and what they teach)
+### Three defects worth recording
 
 **1. A string sort that looked like a numeric sort.** croniter sorts each
 expanded field with `key=lambda i: f"{i:02}" if isinstance(i, int) else i` — a
-*string* sort over a list mixing ints with `"*"` and `"l"`. The real ordering is
+string sort over a list mixing ints with `"*"` and `"l"`. The real ordering is
 `"*" < digits < "l"`. `_get_next_nearest_diff` walks that list in order, so a
-naive numeric sort produces wrong fire times with **no compile error and no
-obvious failing test**. Encoded as the variant order of
-`enum Item { Star, Num(i64), Last }` with derived `Ord`, and commented so nobody
-"tidies" it later.
+numeric sort produces wrong fire times with no compile error and no obvious
+failing test. Encoded as the variant order of `enum Item { Star, Num(i64), Last }`
+with derived `Ord`, and commented so it is not "tidied" later.
 
-**2. An infinite loop that was the lucky outcome.** `proc_second` read its
+**2. An infinite loop, which was the better outcome.** `proc_second` read its
 direction from the struct field rather than the current call. `match_range`
-builds an iterator with `is_prev=false` then steps it *backwards*, so on 6-field
+builds an iterator with `is_prev=false` then steps it backwards, so on 6-field
 expressions the second field searched forward while everything else searched
-backward — the candidate oscillated forever. A hang is a much better failure
-mode than a plausible wrong answer.
+backward, and the candidate oscillated. A hang is a better failure mode than a
+plausible wrong answer.
 
 **3. The right instant, printed with the wrong offset.** During Athens' autumn
-fall-back the port produced *correct* timestamps — `ct.cur` matched the original
+fall-back the port produced correct timestamps — `ct.cur` matched the original
 exactly at every step — but rendered the repeated hour as `03:00+03:00` instead
 of `03:00+02:00`. The bridge was rebuilding datetimes from wall-clock fields and
 attaching the zone with `replace(tzinfo=…)`, which always yields `fold=0`.
-**During a DST fold, a wall-clock reading is not a sufficient representation of a
-point in time.** Fixed by returning `(wall, instant)` and rendering from the
+During a DST fold, a wall-clock reading is not a sufficient representation of a
+point in time. Fixed by returning `(wall, instant)` and rendering from the
 instant.
 
-Full running log in [`notes.md`](notes.md); every divergence and design call in
-[`DECISIONS.md`](DECISIONS.md) (19 entries).
+Running log in [`notes.md`](notes.md); every divergence and design call in
+[`DECISIONS.md`](DECISIONS.md).
 
 ---
 
-## 🧪 Differential fuzzing
+## Differential fuzzing
 
 ```bash
 make fuzz      # 120 seconds, writes fuzz/log.txt
 ```
 
-Generates cron expressions and start times, runs the **same probe script** under
+Generates cron expressions and start times, runs the same probe script under
 both interpreters, and compares `expand`, `is_valid`, `match`, `get_next`,
-`get_prev` and `croniter_range` results **and the exception types raised**.
+`get_prev` and `croniter_range` results, and the exception types raised.
 
 ```
 elapsed_seconds=120.1     batches=642     inputs_compared=160500     divergences=0
@@ -365,137 +347,132 @@ coverage by (operation, timezone-aware?)
    8971  range  naive      8970  match     naive
 ```
 
-Generation is weighted toward where ports actually break: `L`/`W`/`#`,
-wrap-around ranges, hash forms, and **start times within ±6h of a real DST
-transition** in both `zoneinfo` and `pytz` flavours — zones that spring forward,
-fall back, do both in reversed months (Sydney), and shift by only 30 minutes
-(Lord Howe).
+Generation is weighted toward where ports break: `L`/`W`/`#`, wrap-around
+ranges, hash forms, and start times within ±6h of a real DST transition in both
+`zoneinfo` and `pytz` flavours — zones that spring forward, fall back, do both
+in reversed months (Sydney), and shift by only 30 minutes (Lord Howe).
 
-Datetimes are compared as **(naive reading, UTC instant, UTC offset)** — all
-three must match. That triple is deliberate: during a fold the instant can be
-right while the offset is wrong, which is exactly bug #3 above.
+Datetimes are compared as (naive reading, UTC instant, UTC offset); all three
+must match. That triple is deliberate: during a fold the instant can be right
+while the offset is wrong, which is defect 3 above.
 
-> **The fuzzer earned its keep.** Adding timezone coverage immediately surfaced
-> **221 divergences in 164,500 inputs** — all one root cause, and all in exception
-> *type* rather than value: croniter raises a bare `ValueError` where we raised
-> `CroniterError`. Since `CroniterError` subclasses `ValueError`, the suite stayed
-> green at 228/228 before *and* after. **The passing tests could not have caught
-> it.** There were **zero value divergences** — no input where both sides
-> succeeded with different answers. Fixed; see [DECISIONS #17](DECISIONS.md).
+**What the fuzzer caught.** Adding timezone coverage surfaced 221 divergences in
+164,500 inputs — all one root cause, and all in exception *type* rather than
+value: croniter raises a bare `ValueError` where the port raised
+`CroniterError`. Since `CroniterError` subclasses `ValueError`, the suite stayed
+green at 228/228 before and after, so the passing tests could not have caught
+it. There were zero value divergences — no input where both sides succeeded with
+different answers. Fixed; see [DECISIONS #17](DECISIONS.md).
 
 ---
 
-## 🐛 Upstream bugs found
+## Upstream bugs
 
-**Two genuine defects in the original Python croniter**, found while porting.
-Full write-up with reproductions, root causes and a prior-art check in
-**[`fuzz/UPSTREAM-BUGS.md`](fuzz/UPSTREAM-BUGS.md)**.
+Two defects in the original Python croniter, found while porting. Full write-up
+with reproductions, root causes and a prior-art check in
+[`fuzz/UPSTREAM-BUGS.md`](fuzz/UPSTREAM-BUGS.md).
 
-Neither is a debate about cron semantics — in both cases croniter answers the
-same question two different ways depending on which API you ask.
+Neither is a debate about cron semantics. In both cases croniter answers the
+same question two different ways depending on which API is asked.
 
-### 1️⃣ `get_next` skips a fire time when a DST shift is not a whole hour
+### 1. `get_next` skips a fire time when a DST shift is not a whole hour
 
 ```python
 tz = zoneinfo.ZoneInfo("Australia/Lord_Howe")     # world's only 30-min DST shift
 start = datetime(2019, 10, 6, 1, 43, tzinfo=tz)
 
 croniter("0 * * * *", start).get_next(datetime)   # 03:00+11:00
-croniter("0 * * * *", _).get_prev(datetime)       # 02:30+11:00  ← AFTER start
+croniter("0 * * * *", _).get_prev(datetime)       # 02:30+11:00  <- AFTER start
 croniter.match("0 * * * *", <02:30+11:00>)        # True
 ```
 
-`get_prev` and `match` say 02:30 is on the hourly schedule; `get_next` skips it.
-`match` returning `True` for a **minute-0** schedule at **minute 30** shows it
-most sharply. Reproduces every year 2018–2022.
+`get_prev` and `match` treat 02:30 as on the hourly schedule; `get_next` skips
+it. `match` returning `True` for a minute-0 schedule at minute 30 shows it most
+sharply. Reproduces every year 2018–2022.
 
-### 2️⃣ `croniter_range`'s stop test ignores the UTC offset
+### 2. `croniter_range`'s stop test ignores the UTC offset
 
 One defective comparison, two failure modes:
 
-- **Returns too few** — 1 result where 6 exist (silent data loss, fall-back)
-- **Returns values outside the requested interval** — asked for UTC 01:15→04:00,
-  got a result at UTC 01:00 (spring-forward)
+- Returns too few results — 1 where 6 exist (silent data loss, fall-back).
+- Returns values outside the requested interval — asked for UTC 01:15→04:00, got
+  a result at UTC 01:00 (spring-forward).
 
-`cont(v)` is `v < stop`, and CPython **ignores `tzinfo`** when both operands
-share it, so across a transition the test compares wall-clock instead of elapsed
-time.
+`cont(v)` is `v < stop`, and CPython ignores `tzinfo` when both operands share
+it, so across a transition the test compares wall-clock rather than elapsed time.
 
-### Prior art — are they already reported?
+### Prior art
 
-We checked. **Neither appears in the tracker.** Every DST issue on
-`pallets-eco/croniter` is **closed**, and we re-ran their original reproductions
-against our kickoff commit: #151 and #191 are **fixed**, #147's report was
-**mistaken**. Ours still reproduce there. No issue mentions Lord Howe, half-hour
-DST, or 30-minute offsets at all.
+Neither bug appears in the tracker. Every DST issue on `pallets-eco/croniter` is
+closed, and re-running their original reproductions against our kickoff commit
+shows #151 and #191 are fixed and #147's report was mistaken. Ours still
+reproduce there. No issue mentions Lord Howe, half-hour DST, or 30-minute
+offsets.
 
-*(Caveat: GitHub issue search is fuzzy and mostly matches titles. This is a
-good-faith search, not proof of novelty.)*
+GitHub issue search is fuzzy and mostly matches titles. This is a good-faith
+search, not proof of novelty.
 
-### How they were found — including what didn't work
+### How they were found
 
-| harness | cases | result |
+| Harness | Cases | Result |
 |---|---:|---|
-| `fuzz/oracle.py` | 19,440 | **0 findings** — too weak to reach either bug |
-| `fuzz/invariants.py` | ~23,800 | **both bugs** |
+| `fuzz/oracle.py` | 19,440 | 0 findings — too weak to reach either bug |
+| `fuzz/invariants.py` | ~23,800 | Both bugs |
 | `fuzz/invariants2.py` | ~23,900 | Symptom B; field checker found nothing new |
 
-Our first oracle checked one property, on **naive** datetimes only, and never
-called `get_prev`. It reported zero — which read like evidence of correctness and
-was actually evidence that the question was too easy. `invariants2.py` then
-produced 927 raw findings, of which `fuzz/triage.py` resolved **750 as croniter's
-documented skip-forward, leaving zero unexplained**. An earlier range check
-produced 1,408 findings that were **entirely our own error**.
+The first oracle checked one property, on naive datetimes only, and never called
+`get_prev`. It reported zero, which read like evidence of correctness and was
+evidence that the question was too easy. `invariants2.py` then produced 927 raw
+findings, of which `fuzz/triage.py` resolved 750 as croniter's documented
+skip-forward, leaving zero unexplained. An earlier range check produced 1,408
+findings that were entirely our own error.
 
-We report those negatives because they're what make the two positives credible.
+These negatives are reported because they bound what was actually searched.
 
-**This port reproduces both bugs, deliberately** — a port's job is to behave like
-the thing it ports, including where that is wrong. See [DECISIONS #18](DECISIONS.md).
+This port reproduces both bugs deliberately — a port's job is to behave like the
+thing it ports, including where that is wrong. See [DECISIONS #18](DECISIONS.md).
 
 ---
 
-## ⚡ Performance
+## Performance
 
 Measured by `bench/run_bench.py`; methodology and confounders in
 [`bench/methodology.md`](bench/methodology.md), raw numbers in
 [`bench/results.json`](bench/results.json).
 
-| benchmark | mean | p50 | p95 | p99 | peak RSS | throughput |
+| Benchmark | Mean | p50 | p95 | p99 | Peak RSS | Throughput |
 |---|---:|---:|---:|---:|---:|---:|
 | Python original, 9,996 iterations | 263.96 ms | 263.80 ms | 269.76 ms | 281.28 ms | 14.6 MB | 37,869 ops/s |
 | **Rust port, 9,996 iterations** | **10.42 ms** | **10.44 ms** | **10.75 ms** | **10.79 ms** | **4.5 MB** | **959,085 ops/s** |
 | Python original, startup only | 30.09 ms | 29.81 ms | 32.38 ms | 35.32 ms | 14.3 MB | — |
 | Rust port, startup only | 2.16 ms | 2.14 ms | 2.28 ms | 2.33 ms | 2.7 MB | — |
 
-<div align="center">
-
-### 25.3x mean · 26.1x at p99 · 14.0x startup · 3.2x smaller RSS
-
-</div>
+**25.3x mean · 26.1x at p99 · 14.0x startup · 3.2x smaller RSS**
 
 The workload is six expressions covering plain steps, ranges, last-day,
-nth-weekday, nearest-weekday and multi-field forms — chosen so the average is not
+nth-weekday, nearest-weekday and multi-field forms, chosen so the average is not
 dominated by the cheapest path.
 
-**Read these with the caveats:**
+Caveats:
 
-- End-to-end times **including process startup**. Subtracting it gives ~28.3x compute-only.
-- 25 samples: the nearest-rank p99 is simply the worst observed run, not a distributional estimate.
-- An earlier pass measured 328 ms for Python vs 264 ms here — a 20% swing from a
-  background fuzzing job competing for CPU. These were taken idle. That drift is
-  documented rather than quietly corrected.
+- Times are end-to-end and include process startup. Subtracting it gives ~28.3x
+  compute-only.
+- With 25 samples, the nearest-rank p99 is the worst observed run, not a
+  distributional estimate.
+- An earlier pass measured 328 ms for Python against 264 ms here — a 20% swing
+  caused by a background fuzzing job competing for CPU. These were taken idle.
+  The drift is documented rather than quietly corrected.
 - croniter is pure date arithmetic with no I/O. A large speedup from compiling is
-  the *expected* result; the point was to measure it, not discover it.
+  the expected result; the point was to measure it, not to discover it.
 
-> **The benchmark doubles as a correctness check.** Both workloads print a
-> checksum summing every fire time's timestamp, and over 9,996 fire times they
-> produce the identical total (`26611225207500`). A single differing minute would
-> change it. `run_bench.py` exits non-zero on mismatch — a speed win on the wrong
-> answer is not a win.
+**The benchmark is also a correctness check.** Both workloads print a checksum
+summing every fire time's timestamp, and over 9,996 fire times they produce the
+identical total (`26611225207500`). A single differing minute would change it.
+`run_bench.py` exits non-zero on mismatch.
 
 ---
 
-## 📁 Repository layout
+## Repository layout
 
 ```
 ├── core/                    THE PORT — ships. #![forbid(unsafe_code)], no Python.
@@ -520,7 +497,7 @@ dominated by the cheapest path.
 │   ├── src/clock.rs           WallClock over the caller's own Python tzinfo
 │   └── python/croniter/       48-line re-export shim + upstream's base.py
 │
-├── tests/original/          ⛔ VERBATIM UPSTREAM · READ-ONLY · NEVER EDITED
+├── tests/original/          VERBATIM UPSTREAM · READ-ONLY · NEVER EDITED
 │
 ├── fuzz/
 │   ├── differential.py        Python-vs-Rust comparison harness
@@ -529,7 +506,7 @@ dominated by the cheapest path.
 │   ├── invariants2.py         field-level + API-agreement hunt
 │   ├── triage.py              filters documented behaviour from real bugs
 │   ├── oracle.py              the original, weaker hunt (kept: it found nothing)
-│   ├── UPSTREAM-BUGS.md       📌 Bug Catcher submission
+│   ├── UPSTREAM-BUGS.md       Bug Catcher submission
 │   └── log.txt                committed 120s fuzz run
 │
 ├── bench/                   workload, harness, methodology.md, results.json
@@ -541,7 +518,7 @@ dominated by the cheapest path.
 
 ---
 
-## ✅ Eligibility
+## Eligibility
 
 **No Rust port of croniter exists.** There is no crate named `croniter`
 (`docs.rs/croniter` is a 404) and nothing in the ecosystem is described as a port
@@ -564,13 +541,3 @@ is fingerprinted in `.test-hashes.sha256`.
 
 **License:** MIT, matching upstream. [`LICENSE`](LICENSE) is upstream's, retained
 verbatim.
-
----
-
-<div align="center">
-
-**228/228 · 0 unsafe · 0 divergences · 2 upstream bugs**
-
-*Every number in this README was measured, not estimated.*
-
-</div>

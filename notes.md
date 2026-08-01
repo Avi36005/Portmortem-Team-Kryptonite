@@ -7,7 +7,7 @@ Every number here was watched, not estimated.
 
 ## Phase 0 — bootstrap
 
-**Baseline on the untouched original: `228 passed in 1.56s`**
+**Baseline on the untouched original: `228 passed in 1.54s`**
 at croniter commit `3c6ce9bcc5cc7f89116a58f43aaea67e760bff50`,
 CPython 3.13.12, Apple Silicon.
 
@@ -221,7 +221,7 @@ Two smaller things from this pass:
 
 | | |
 |---|---|
-| Original baseline | 228/228 in 1.56s |
+| Original baseline | 228/228 in 1.54s |
 | Port | **228/228** in 2.08s |
 | Rust tests | 60/60 (48 unit + 12 CLI integration) |
 | Differential fuzz | 160,500 inputs / 120.1s / **0 divergences** (~66k timezone-aware) |
