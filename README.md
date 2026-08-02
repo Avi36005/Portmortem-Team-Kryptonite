@@ -43,6 +43,24 @@ It builds a binary that links no interpreter and spawns no subprocess. A
 separate, test-only PyO3 bridge runs the unmodified original Python test suite
 against the Rust code; that bridge is not part of the shipped artifact.
 
+### The central design decision
+
+Timezone data is consulted in exactly one place, the `WallClock` trait. `core`
+implements it over `chrono-tz` (`TzClock`), so the shipped binary resolves DST
+with no Python. **The test bridge deliberately does not use that
+implementation.** It queries the caller's own `tzinfo` object instead.
+
+The reason is that `zoneinfo`, `pytz` and `dateutil` genuinely disagree with each
+other on ambiguous local times, and croniter's behaviour is defined by whichever
+one the caller supplied — the original suite has separate tests pinning each.
+Routing the bridge through `chrono-tz` would introduce a fourth opinion and break
+tests that currently pass. So `core` needs its own timezone implementation to be
+a complete deliverable, and the bridge needs to *not* use it to stay faithful to
+the original.
+
+Details in [Architecture](#architecture); rationale in [DECISIONS.md](DECISIONS.md)
+#11 and #19.
+
 ---
 
 ## Results

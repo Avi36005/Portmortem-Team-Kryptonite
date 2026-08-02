@@ -16,6 +16,14 @@ semantics. Both are reproducible in three lines.
 | 1 | `get_next` skips a fire time when a DST shift is not a whole hour | a scheduled job silently does not run |
 | 2 | `croniter_range`'s stop test ignores the UTC offset | silently returns too few results, or results outside the requested interval |
 
+**Bug 2 is the more consequential of the two.** Bug 1 requires
+`Australia/Lord_Howe`, the only zone on Earth with a 30-minute DST shift, so its
+blast radius is narrow. Bug 2 needs only two range bounds sitting on different
+UTC offsets — an ordinary condition in any zone that observes DST — and it fails
+silently in both directions: it drops results that belong in the interval, and it
+returns results that fall outside it. A caller gets a plausible-looking list with
+no exception and no warning. If one finding is to be singled out, it is this one.
+
 ---
 
 # Bug 1 — `get_next` skips a fire time when a DST shift is not a whole hour
