@@ -24,6 +24,9 @@ fuzz/oracle-findings.txt
 fuzz/invariant-findings.txt
 fuzz/invariant2-findings.txt
 
-# Local agent/working instructions -- kept on disk, not published.
+# Local agent/working instructions and internal audit output --
+# kept on disk, not published.
 CLAUDE.md
 PRE_SUBMISSION_AUDIT.md
+audit-results.md
+FINAL-CHECK-RESULTS.md
