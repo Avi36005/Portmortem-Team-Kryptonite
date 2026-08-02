@@ -260,7 +260,12 @@ not see a disagreement between `get_next` and `get_prev`, because it never calle
 
 `fuzz/invariants.py` checks five properties instead of one and puts roughly half
 its start times within four hours of a real DST transition. It found two
-self-contradictions in croniter, written up in `fuzz/UPSTREAM-BUGS.md`:
+self-contradictions in croniter, written up in `fuzz/UPSTREAM-BUGS.md` and filed
+upstream on 2026-08-02:
+
+- [pallets-eco/croniter#258](https://github.com/pallets-eco/croniter/issues/258)
+- [pallets-eco/croniter#259](https://github.com/pallets-eco/croniter/issues/259)
+  — the more consequential of the two
 
 1. **`get_next` skips a fire time when a DST shift is not a whole hour.** In
    `Australia/Lord_Howe` (the only 30-minute DST shift in the world), for
@@ -339,8 +344,11 @@ After the fix: 160,500 inputs, 0 divergences.
 ## 18. The port reproduces both upstream bugs, deliberately
 
 A port's job is to behave like the thing it ports, including where that thing is
-wrong. Both bugs in `fuzz/UPSTREAM-BUGS.md` reproduce identically here — same
-skipped fire time, same truncated range, same `match` answer.
+wrong. Both bugs in `fuzz/UPSTREAM-BUGS.md` — filed upstream as
+[#258](https://github.com/pallets-eco/croniter/issues/258) and
+[#259](https://github.com/pallets-eco/croniter/issues/259) — reproduce
+identically here: same skipped fire time, same truncated range, same `match`
+answer.
 
 That is the correct outcome and it is not an accident. Fix either one and the
 original test suite would still pass, the differential fuzzer would start

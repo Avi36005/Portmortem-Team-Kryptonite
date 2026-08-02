@@ -11,10 +11,13 @@ cases croniter answers the same question two different ways depending on which
 API you ask, so one of the two answers is wrong under any reading of the
 semantics. Both are reproducible in three lines.
 
-| # | Defect | Impact |
-|---|---|---|
-| 1 | `get_next` skips a fire time when a DST shift is not a whole hour | a scheduled job silently does not run |
-| 2 | `croniter_range`'s stop test ignores the UTC offset | silently returns too few results, or results outside the requested interval |
+| # | Defect | Impact | Filed upstream |
+|---|---|---|---|
+| 1 | `get_next` skips a fire time when a DST shift is not a whole hour | a scheduled job silently does not run | [#258](https://github.com/pallets-eco/croniter/issues/258) |
+| 2 | `croniter_range`'s stop test ignores the UTC offset | silently returns too few results, or results outside the requested interval | [#259](https://github.com/pallets-eco/croniter/issues/259) |
+
+Both filed at `github.com/pallets-eco/croniter` on **2026-08-02**, during the
+event window.
 
 **Bug 2 is the more consequential of the two.** Bug 1 requires
 `Australia/Lord_Howe`, the only zone on Earth with a 30-minute DST shift, so its

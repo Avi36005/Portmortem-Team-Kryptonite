@@ -77,7 +77,16 @@ pyo3 in core/:      0           (verifiable via `cargo tree`)
 Differential fuzz:  160,500 inputs vs the Python original — 0 divergences
 Benchmark:          25.3x faster (mean), 26.1x at p99, 3.2x smaller peak RSS
 Equivalence:        both benchmarks produce an identical checksum over 9,996 fire times
+
+Upstream bugs:      2 found, and both REPORTED TO THE ORIGINAL PROJECT
+                    pallets-eco/croniter#258 and #259, filed 2026-08-02
 ```
+
+> **We reported both bugs to the croniter maintainers.** They are not just
+> written up in this repo — they are filed as real issues on the original
+> project, [#258](https://github.com/pallets-eco/croniter/issues/258) and
+> [#259](https://github.com/pallets-eco/croniter/issues/259), and anyone can
+> open them and check the timestamps.
 
 | Test file | Tests | Passing | |
 |---|---:|---:|:--|
@@ -386,8 +395,20 @@ different answers. Fixed; see [DECISIONS #17](DECISIONS.md).
 
 ## Upstream bugs
 
-Two defects in the original Python croniter, found while porting. Full write-up
-with reproductions, root causes and a prior-art check in
+Two defects in the original Python croniter, found while porting. **We reported
+both to the upstream project during the event** — these are live issues on
+`pallets-eco/croniter`, not just notes in this repo:
+
+| | Issue | Filed |
+|---|---|---|
+| 1 | [pallets-eco/croniter#258](https://github.com/pallets-eco/croniter/issues/258) — `get_next` skips a fire time when the DST shift is not a whole hour | 2026-08-02 |
+| 2 | [pallets-eco/croniter#259](https://github.com/pallets-eco/croniter/issues/259) — `croniter_range` stop test ignores the UTC offset | 2026-08-02 |
+
+**#259 is the more consequential of the two** — it needs only two range bounds on
+different UTC offsets, ordinary in any DST zone, and fails silently in both
+directions.
+
+Full write-up with reproductions, root causes and a prior-art check in
 [`fuzz/UPSTREAM-BUGS.md`](fuzz/UPSTREAM-BUGS.md).
 
 Neither is a debate about cron semantics. In both cases croniter answers the
