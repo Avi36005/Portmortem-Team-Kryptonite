@@ -30,3 +30,7 @@ CLAUDE.md
 PRE_SUBMISSION_AUDIT.md
 audit-results.md
 FINAL-CHECK-RESULTS.md
+
+# Word exports of the markdown docs -- regenerate as needed; the repo
+# ships the markdown originals, which are what judges clone.
+docs/
