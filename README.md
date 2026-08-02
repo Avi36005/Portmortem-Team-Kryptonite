@@ -18,13 +18,13 @@ Team Kryptonite · Port Mortem 2026 · Track D — Python → Rust
 
 - [Overview](#overview)
 - [Results](#results)
+- [Upstream bugs](#upstream-bugs)
 - [Scope](#scope)
 - [Build and run](#build-and-run)
 - [Verification](#verification)
 - [Architecture](#architecture)
 - [Implementation](#implementation)
 - [Differential fuzzing](#differential-fuzzing)
-- [Upstream bugs](#upstream-bugs)
 - [Performance](#performance)
 - [Repository layout](#repository-layout)
 - [Eligibility](#eligibility)
@@ -101,6 +101,87 @@ Upstream bugs:      2 found, and both REPORTED TO THE ORIGINAL PROJECT
 Every number here was measured on this machine. The project brief quotes a 4.33s
 baseline; we measure 1.54s on different hardware, and report what we observed.
 Where a claim could not be verified — the Docker path — it is marked as such.
+
+---
+
+## Upstream bugs
+
+Two defects in the original Python croniter, found while porting. **We reported
+both to the upstream project during the event** — these are live issues on
+`pallets-eco/croniter`, not just notes in this repo:
+
+| | Issue | Filed |
+|---|---|---|
+| 1 | [pallets-eco/croniter#258](https://github.com/pallets-eco/croniter/issues/258) — `get_next` skips a fire time when the DST shift is not a whole hour | 2026-08-02 |
+| 2 | [pallets-eco/croniter#259](https://github.com/pallets-eco/croniter/issues/259) — `croniter_range` stop test ignores the UTC offset | 2026-08-02 |
+
+**#259 is the more consequential of the two** — it needs only two range bounds on
+different UTC offsets, ordinary in any DST zone, and fails silently in both
+directions.
+
+Full write-up with reproductions, root causes and a prior-art check in
+[`fuzz/UPSTREAM-BUGS.md`](fuzz/UPSTREAM-BUGS.md).
+
+Neither is a debate about cron semantics. In both cases croniter answers the
+same question two different ways depending on which API is asked.
+
+### 1. `get_next` skips a fire time when a DST shift is not a whole hour
+
+```python
+tz = zoneinfo.ZoneInfo("Australia/Lord_Howe")     # world's only 30-min DST shift
+start = datetime(2019, 10, 6, 1, 43, tzinfo=tz)
+
+croniter("0 * * * *", start).get_next(datetime)   # 03:00+11:00
+croniter("0 * * * *", _).get_prev(datetime)       # 02:30+11:00  <- AFTER start
+croniter.match("0 * * * *", <02:30+11:00>)        # True
+```
+
+`get_prev` and `match` treat 02:30 as on the hourly schedule; `get_next` skips
+it. `match` returning `True` for a minute-0 schedule at minute 30 shows it most
+sharply. Reproduces every year 2018–2022.
+
+### 2. `croniter_range`'s stop test ignores the UTC offset
+
+One defective comparison, two failure modes:
+
+- Returns too few results — 1 where 6 exist (silent data loss, fall-back).
+- Returns values outside the requested interval — asked for UTC 01:15→04:00, got
+  a result at UTC 01:00 (spring-forward).
+
+`cont(v)` is `v < stop`, and CPython ignores `tzinfo` when both operands share
+it, so across a transition the test compares wall-clock rather than elapsed time.
+
+### Prior art
+
+Neither bug appears in the tracker. Every DST issue on `pallets-eco/croniter` is
+closed, and re-running their original reproductions against our kickoff commit
+shows #151 and #191 are fixed and #147's report was mistaken. Ours still
+reproduce there. No issue mentions Lord Howe, half-hour DST, or 30-minute
+offsets.
+
+GitHub issue search is fuzzy and mostly matches titles. This is a good-faith
+search, not proof of novelty.
+
+### How they were found
+
+| Harness | Cases | Result |
+|---|---:|---|
+| `fuzz/oracle.py` | 19,440 | 0 findings — too weak to reach either bug |
+| `fuzz/invariants.py` | ~23,800 | Both bugs |
+| `fuzz/invariants2.py` | ~23,900 | Symptom B; field checker found nothing new |
+
+The first oracle checked one property, on naive datetimes only, and never called
+`get_prev`. It reported zero, which read like evidence of correctness and was
+evidence that the question was too easy. `invariants2.py` then produced 927 raw
+findings, of which `fuzz/triage.py` resolved 750 as croniter's documented
+skip-forward, leaving zero unexplained. An earlier range check produced 1,408
+findings that were entirely our own error.
+
+These negatives are reported because they bound what was actually searched.
+
+This port reproduces both bugs deliberately — a port's job is to behave like the
+thing it ports, including where that is wrong. See [DECISIONS #18](DECISIONS.md).
+
 
 ---
 
@@ -390,86 +471,6 @@ value: croniter raises a bare `ValueError` where the port raised
 green at 228/228 before and after, so the passing tests could not have caught
 it. There were zero value divergences — no input where both sides succeeded with
 different answers. Fixed; see [DECISIONS #17](DECISIONS.md).
-
----
-
-## Upstream bugs
-
-Two defects in the original Python croniter, found while porting. **We reported
-both to the upstream project during the event** — these are live issues on
-`pallets-eco/croniter`, not just notes in this repo:
-
-| | Issue | Filed |
-|---|---|---|
-| 1 | [pallets-eco/croniter#258](https://github.com/pallets-eco/croniter/issues/258) — `get_next` skips a fire time when the DST shift is not a whole hour | 2026-08-02 |
-| 2 | [pallets-eco/croniter#259](https://github.com/pallets-eco/croniter/issues/259) — `croniter_range` stop test ignores the UTC offset | 2026-08-02 |
-
-**#259 is the more consequential of the two** — it needs only two range bounds on
-different UTC offsets, ordinary in any DST zone, and fails silently in both
-directions.
-
-Full write-up with reproductions, root causes and a prior-art check in
-[`fuzz/UPSTREAM-BUGS.md`](fuzz/UPSTREAM-BUGS.md).
-
-Neither is a debate about cron semantics. In both cases croniter answers the
-same question two different ways depending on which API is asked.
-
-### 1. `get_next` skips a fire time when a DST shift is not a whole hour
-
-```python
-tz = zoneinfo.ZoneInfo("Australia/Lord_Howe")     # world's only 30-min DST shift
-start = datetime(2019, 10, 6, 1, 43, tzinfo=tz)
-
-croniter("0 * * * *", start).get_next(datetime)   # 03:00+11:00
-croniter("0 * * * *", _).get_prev(datetime)       # 02:30+11:00  <- AFTER start
-croniter.match("0 * * * *", <02:30+11:00>)        # True
-```
-
-`get_prev` and `match` treat 02:30 as on the hourly schedule; `get_next` skips
-it. `match` returning `True` for a minute-0 schedule at minute 30 shows it most
-sharply. Reproduces every year 2018–2022.
-
-### 2. `croniter_range`'s stop test ignores the UTC offset
-
-One defective comparison, two failure modes:
-
-- Returns too few results — 1 where 6 exist (silent data loss, fall-back).
-- Returns values outside the requested interval — asked for UTC 01:15→04:00, got
-  a result at UTC 01:00 (spring-forward).
-
-`cont(v)` is `v < stop`, and CPython ignores `tzinfo` when both operands share
-it, so across a transition the test compares wall-clock rather than elapsed time.
-
-### Prior art
-
-Neither bug appears in the tracker. Every DST issue on `pallets-eco/croniter` is
-closed, and re-running their original reproductions against our kickoff commit
-shows #151 and #191 are fixed and #147's report was mistaken. Ours still
-reproduce there. No issue mentions Lord Howe, half-hour DST, or 30-minute
-offsets.
-
-GitHub issue search is fuzzy and mostly matches titles. This is a good-faith
-search, not proof of novelty.
-
-### How they were found
-
-| Harness | Cases | Result |
-|---|---:|---|
-| `fuzz/oracle.py` | 19,440 | 0 findings — too weak to reach either bug |
-| `fuzz/invariants.py` | ~23,800 | Both bugs |
-| `fuzz/invariants2.py` | ~23,900 | Symptom B; field checker found nothing new |
-
-The first oracle checked one property, on naive datetimes only, and never called
-`get_prev`. It reported zero, which read like evidence of correctness and was
-evidence that the question was too easy. `invariants2.py` then produced 927 raw
-findings, of which `fuzz/triage.py` resolved 750 as croniter's documented
-skip-forward, leaving zero unexplained. An earlier range check produced 1,408
-findings that were entirely our own error.
-
-These negatives are reported because they bound what was actually searched.
-
-This port reproduces both bugs deliberately — a port's job is to behave like the
-thing it ports, including where that is wrong. See [DECISIONS #18](DECISIONS.md).
 
 ---
 
