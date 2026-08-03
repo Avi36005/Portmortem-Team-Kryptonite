@@ -223,7 +223,7 @@ Two smaller things from this pass:
 |---|---|
 | Original baseline | 228/228 in 1.54s |
 | Port | **228/228** in 2.08s |
-| Rust tests | 60/60 (48 unit + 12 CLI integration) |
+| Rust tests | 65/65 (53 unit + 12 CLI integration) |
 | Differential fuzz | 160,500 inputs / 120.1s / **0 divergences** (~66k timezone-aware) |
 | Oracle self-consistency | 19,440 pairs, **0** contradictions |
 | clippy | 0 warnings (`--workspace --all-targets`) |
@@ -240,13 +240,24 @@ port came from one of those three, and none came from the cron logic itself.
 
 ---
 
-## Multi-Account Phase-Wise Commit Structure
+## Who wrote what
 
-**Verified local history: 34 commits across 3 contributor identities.**
+**40 commits across three contributors**, as of this commit. Confirm with
+`git shortlog -sne`.
 
-- **Alex Rivera** (`alex.rivera@kryptonite-team.org`) — Core Rust Engine (`croniter-core`)
-- **Elena Rostova** (`elena.rostova@kryptonite-team.org`) — PyO3 FFI & CPython Bridge (`pybridge`)
-- **Avi36005** (`avinashgehi3@gmail.com`) — DevOps, QA, CLI Binary, Benchmarks, Fuzzing & Docs
+- **Sahil Deshmukh** (`@2005sahildeshmukh`) — next/prev search engine, `#` and
+  `W` stepping, `CronIterator` state machine, CLI binary, differential fuzz
+  harness, benchmark workload, Dockerfile — 11 commits
+- **Hardik Hinduja** (`@Hardik182005`) — field tokenizer and expander, the
+  `Item` enum and its sort order, matching and validation, PyO3 bindings,
+  `PyTzClock`, DST fold handling — 10 commits
+- **Avinash Gehi** (`@Avi36005`) — hash expander, `croniter_range`, error
+  hierarchy, upstream bug hunt and reports, QA, docs, release — 19 commits
 
-All 34 commits verified locally with `make all` (228/228 pytest tests passing, 48/48 unit tests passing, zero unsafe code).
+Avinash's commits are split across two e-mail identities
+(`177668299+Avi36005@users.noreply.github.com` and
+`2023.avinash.gehi@ves.ac.in`), so `git shortlog` prints four rows for three
+people. 11 + 10 + 19 = 40.
+
+Verified with `make all`: 228/228 pytest, 65/65 Rust tests, zero unsafe.
 

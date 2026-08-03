@@ -12,6 +12,8 @@ A complete, behaviour-preserving port of [croniter](https://github.com/pallets-e
 
 Team Kryptonite · Port Mortem 2026 · Track D — Python → Rust
 
+**Members:** Avinash Gehi · Hardik Hinduja · Sahil Deshmukh
+
 ---
 
 ## Contents
